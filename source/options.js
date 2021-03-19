@@ -3,14 +3,17 @@
 var browser = require("webextension-polyfill");
 
 function login(data) {
-	chrome.tabs.executeScript({
- 		code: `(${ inContent })(${ JSON.stringify({ data: data }) })`
-	}, _=>chrome.runtime.lastError);	
+	const executing = browser.tabs.executeScript({
+ 		code: `(${ inContent })(${ JSON.stringify(data) })`
+	});	
+	executing.then(() => browser.runtime.lastError)
 }
 function inContent(data) {
 	var loginInputs = [...document.querySelectorAll('input[type="text"]')];
 	var passwordInputs = [...document.querySelectorAll('input[type="password"]')];
 	var submitButton = document.querySelector('[type="submit"]');
+
+	console.log(data.loginText)
  	loginInputs.forEach(function (loginInput) {
 		loginInput.value = data.loginText;
 	});
@@ -31,32 +34,32 @@ function Cred(data) {
     this.node.find('.number').html(Cred.next_id);
     creds.append(this.node);
 
- 	$('.login-button').on('click', function() {
-        login(data);
-    });
-
     if (data) {
         this.node.find('.number').text(Cred.next_id);
         this.node.find('.loginText').val(data.loginText);
         this.node.find('.passwordText').val(data.passwordText);
+
+        this.node.find('.login-button').on('click', function() {
+        	login(data);
+    	});
     }
 
     this.node.find('.loginText').on('keyup', () => storeCreds());
 
     this.node.find('.passwordText').on('keyup', () => storeCreds());
 
-    this.node.find('.remove').on('click', () => {
-        _this = $(this).parent().parent()
-
-        _this.nextAll().find('.number').each((index, element) => {
-            number = $(element).text();
-            number--;
-            $(element).text(number);
-        });
-        _this.remove();
-        Cred.next_id--;
-        storeCreds();
-    });
+    this.node.find('.remove').on('click', function(){
+		_this = $(this).parent().parent()
+		
+		_this.nextAll().find('.number').each(function(index, element) {
+			number = $(element).text();
+			number--;
+			$(element).text(number);
+		});
+		_this.remove();
+		Cred.next_id--;
+		storeCreds();
+	});
 
     storeCreds();
 }
